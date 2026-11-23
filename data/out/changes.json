@@ -1,0 +1,134 @@
+{
+ "false_alarm_rate": 0.02,
+ "pitcher_seasons": 865,
+ "starters": {
+  "filter": {
+   "threshold": 2.7969121307291402,
+   "-0.75": {
+    "confirmed_within_3": 0.15570934256055363,
+    "confirmed_within_6": 0.23875432525951557,
+    "median_outings_to_confirm": 4.0,
+    "n": 289
+   },
+   "-1.0": {
+    "confirmed_within_3": 0.27335640138408307,
+    "confirmed_within_6": 0.42214532871972316,
+    "median_outings_to_confirm": 3.0,
+    "n": 289
+   },
+   "-1.5": {
+    "confirmed_within_3": 0.6955017301038062,
+    "confirmed_within_6": 0.8373702422145328,
+    "median_outings_to_confirm": 2.0,
+    "n": 289
+   }
+  },
+  "rolling3": {
+   "threshold": 0.9359620531284927,
+   "-0.75": {
+    "confirmed_within_3": 0.19377162629757785,
+    "confirmed_within_6": 0.314878892733564,
+    "median_outings_to_confirm": 5.0,
+    "n": 289
+   },
+   "-1.0": {
+    "confirmed_within_3": 0.3391003460207612,
+    "confirmed_within_6": 0.5017301038062284,
+    "median_outings_to_confirm": 3.0,
+    "n": 289
+   },
+   "-1.5": {
+    "confirmed_within_3": 0.726643598615917,
+    "confirmed_within_6": 0.8269896193771626,
+    "median_outings_to_confirm": 3.0,
+    "n": 289
+   }
+  },
+  "single": {
+   "threshold": 1.4118378205993878,
+   "-0.75": {
+    "confirmed_within_3": 0.24567474048442905,
+    "confirmed_within_6": 0.3633217993079585,
+    "median_outings_to_confirm": 4.0,
+    "n": 289
+   },
+   "-1.0": {
+    "confirmed_within_3": 0.36678200692041524,
+    "confirmed_within_6": 0.532871972318339,
+    "median_outings_to_confirm": 3.0,
+    "n": 289
+   },
+   "-1.5": {
+    "confirmed_within_3": 0.7231833910034602,
+    "confirmed_within_6": 0.8304498269896193,
+    "median_outings_to_confirm": 1.0,
+    "n": 289
+   }
+  }
+ },
+ "relievers": {
+  "filter": {
+   "threshold": 2.8979770930136293,
+   "-0.75": {
+    "confirmed_within_3": 0.1875,
+    "confirmed_within_6": 0.3194444444444444,
+    "median_outings_to_confirm": 4.0,
+    "n": 576
+   },
+   "-1.0": {
+    "confirmed_within_3": 0.3177083333333333,
+    "confirmed_within_6": 0.4652777777777778,
+    "median_outings_to_confirm": 3.0,
+    "n": 576
+   },
+   "-1.5": {
+    "confirmed_within_3": 0.6475694444444444,
+    "confirmed_within_6": 0.8107638888888888,
+    "median_outings_to_confirm": 2.0,
+    "n": 576
+   }
+  },
+  "rolling3": {
+   "threshold": 1.0149070036864134,
+   "-0.75": {
+    "confirmed_within_3": 0.2013888888888889,
+    "confirmed_within_6": 0.3003472222222222,
+    "median_outings_to_confirm": 5.0,
+    "n": 576
+   },
+   "-1.0": {
+    "confirmed_within_3": 0.3038194444444444,
+    "confirmed_within_6": 0.4583333333333333,
+    "median_outings_to_confirm": 4.0,
+    "n": 576
+   },
+   "-1.5": {
+    "confirmed_within_3": 0.6145833333333334,
+    "confirmed_within_6": 0.7465277777777778,
+    "median_outings_to_confirm": 3.0,
+    "n": 576
+   }
+  },
+  "single": {
+   "threshold": 1.591943541952889,
+   "-0.75": {
+    "confirmed_within_3": 0.2309027777777778,
+    "confirmed_within_6": 0.3385416666666667,
+    "median_outings_to_confirm": 5.0,
+    "n": 576
+   },
+   "-1.0": {
+    "confirmed_within_3": 0.3246527777777778,
+    "confirmed_within_6": 0.4722222222222222,
+    "median_outings_to_confirm": 4.0,
+    "n": 576
+   },
+   "-1.5": {
+    "confirmed_within_3": 0.5902777777777778,
+    "confirmed_within_6": 0.7256944444444444,
+    "median_outings_to_confirm": 2.0,
+    "n": 576
+   }
+  }
+ }
+}

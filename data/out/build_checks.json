@@ -1,0 +1,22 @@
+{
+ "pitches": 1419777,
+ "pitches_by_season": {
+  "2025": 707784,
+  "2026": 711993
+ },
+ "appearances": 41390,
+ "pitchers": 1024,
+ "appearances_missing_fb": 754,
+ "arm_angle_missing_share": 0.0011566099025494636,
+ "il_placements": 965,
+ "il_by_body": {
+  "elbow_forearm": 317,
+  "non_arm": 311,
+  "shoulder_lat": 204,
+  "other_arm": 57,
+  "unspecified": 56,
+  "impact": 20
+ },
+ "il_with_retro_date": 482,
+ "position_players_dropped": 4
+}

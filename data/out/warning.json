@@ -1,0 +1,189 @@
+{
+ "train": {
+  "season": 2025,
+  "outings": 17944,
+  "positives": 557
+ },
+ "test": {
+  "season": 2026,
+  "outings": 18412,
+  "positives": 608,
+  "events": 173
+ },
+ "flag_share": 0.02,
+ "horizon_days": 14,
+ "results": [
+  {
+   "model": "ensemble",
+   "auc": 0.5374586875805556,
+   "avg_precision": 0.039007518496481,
+   "base_rate": 0.03302194221160113,
+   "precision_at_flags": 0.04607046070460705,
+   "lift_at_flags": 1.3951469119954356,
+   "events": 173,
+   "caught_any": 0.08670520231213873,
+   "caught_final": 0.07514450867052024,
+   "caught_early": 0.023121387283236993,
+   "median_lead_days": 9.0,
+   "flags": 369,
+   "false_flags_per_pitcher_season": 0.4512820512820513
+  },
+  {
+   "model": "boosting",
+   "auc": 0.5398430663866193,
+   "avg_precision": 0.039333498147820015,
+   "base_rate": 0.03302194221160113,
+   "precision_at_flags": 0.03553299492385787,
+   "lift_at_flags": 1.0760419449639327,
+   "events": 173,
+   "caught_any": 0.06936416184971098,
+   "caught_final": 0.046242774566473986,
+   "caught_early": 0.028901734104046242,
+   "median_lead_days": 11.0,
+   "flags": 394,
+   "false_flags_per_pitcher_season": 0.48717948717948717
+  },
+  {
+   "model": "logistic",
+   "auc": 0.5348371226454138,
+   "avg_precision": 0.039582589490387184,
+   "base_rate": 0.03302194221160113,
+   "precision_at_flags": 0.04607046070460705,
+   "lift_at_flags": 1.3951469119954356,
+   "events": 173,
+   "caught_any": 0.08670520231213873,
+   "caught_final": 0.06936416184971098,
+   "caught_early": 0.028901734104046242,
+   "median_lead_days": 7.0,
+   "flags": 369,
+   "false_flags_per_pitcher_season": 0.4512820512820513
+  },
+  {
+   "model": "velo_drop_rule",
+   "auc": 0.5355883583227897,
+   "avg_precision": 0.04176533915810435,
+   "base_rate": 0.03302194221160113,
+   "precision_at_flags": 0.056910569105691054,
+   "lift_at_flags": 1.7234167736414205,
+   "events": 173,
+   "caught_any": 0.10404624277456648,
+   "caught_final": 0.057803468208092484,
+   "caught_early": 0.057803468208092484,
+   "median_lead_days": 7.0,
+   "flags": 369,
+   "false_flags_per_pitcher_season": 0.4461538461538462
+  },
+  {
+   "model": "velocity_signal_only",
+   "auc": 0.538609467564947,
+   "avg_precision": 0.03877880794430134,
+   "base_rate": 0.03302194221160113,
+   "precision_at_flags": 0.04878048780487805,
+   "lift_at_flags": 1.477214377406932,
+   "events": 173,
+   "caught_any": 0.06936416184971098,
+   "caught_final": 0.046242774566473986,
+   "caught_early": 0.04046242774566474,
+   "median_lead_days": 12.0,
+   "flags": 369,
+   "false_flags_per_pitcher_season": 0.45
+  },
+  {
+   "model": "workload_only",
+   "auc": 0.5223977148098002,
+   "avg_precision": 0.036317494267002357,
+   "base_rate": 0.03302194221160113,
+   "precision_at_flags": 0.04607046070460705,
+   "lift_at_flags": 1.3951469119954356,
+   "events": 173,
+   "caught_any": 0.06936416184971098,
+   "caught_final": 0.05202312138728324,
+   "caught_early": 0.028901734104046242,
+   "median_lead_days": 9.0,
+   "flags": 369,
+   "false_flags_per_pitcher_season": 0.4512820512820513
+  }
+ ],
+ "importance": [
+  {
+   "feature": "cusum_velo",
+   "importance": 0.003943541338397959
+  },
+  {
+   "feature": "cusum_rel_z",
+   "importance": 0.0012216764330928147
+  },
+  {
+   "feature": "age",
+   "importance": 0.001189926180869087
+  },
+  {
+   "feature": "cusum_arm_angle",
+   "importance": 0.001106807863466691
+  },
+  {
+   "feature": "arm_il_past_year",
+   "importance": 0.0010925011934335592
+  },
+  {
+   "feature": "days_rest",
+   "importance": 0.000792971801261165
+  },
+  {
+   "feature": "z_velo_last3",
+   "importance": 0.000632332555949652
+  },
+  {
+   "feature": "pitches_7d",
+   "importance": 0.0006229198141542948
+  },
+  {
+   "feature": "cusum_spin",
+   "importance": 0.0005866769724994806
+  },
+  {
+   "feature": "z_velo",
+   "importance": 0.0005654742820405323
+  },
+  {
+   "feature": "pitches_14d",
+   "importance": 0.0002128051773940794
+  },
+  {
+   "feature": "z_ext",
+   "importance": 0.00017238324125246323
+  },
+  {
+   "feature": "pitches_30d",
+   "importance": 0.00015433164690062222
+  },
+  {
+   "feature": "z_spin",
+   "importance": 7.461610122067985e-05
+  },
+  {
+   "feature": "z_arm_angle",
+   "importance": 4.065147984454176e-05
+  },
+  {
+   "feature": "z_rel_z",
+   "importance": 2.240100396924162e-05
+  },
+  {
+   "feature": "cusum_ext",
+   "importance": 9.857020547608154e-06
+  },
+  {
+   "feature": "pitches",
+   "importance": 0.0
+  },
+  {
+   "feature": "starter",
+   "importance": 0.0
+  },
+  {
+   "feature": "outings_7d",
+   "importance": -4.024972238790992e-05
+  }
+ ]
+}

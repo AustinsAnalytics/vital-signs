@@ -1,0 +1,125 @@
+{
+ "relievers": {
+  "outings": 26949,
+  "points": [
+   {
+    "false_alert_rate": 0.01,
+    "threshold": 22.348402696923568,
+    "final_outings": 206,
+    "caught": 0.02912621359223301,
+    "median_fastballs_left": 3.5
+   },
+   {
+    "false_alert_rate": 0.02,
+    "threshold": 17.077005718451634,
+    "final_outings": 206,
+    "caught": 0.04854368932038835,
+    "median_fastballs_left": 5.5
+   },
+   {
+    "false_alert_rate": 0.05,
+    "threshold": 10.931536596316564,
+    "final_outings": 206,
+    "caught": 0.11165048543689321,
+    "median_fastballs_left": 5.0
+   },
+   {
+    "false_alert_rate": 0.1,
+    "threshold": 7.235899638862295,
+    "final_outings": 206,
+    "caught": 0.18932038834951456,
+    "median_fastballs_left": 5.0
+   }
+  ]
+ },
+ "starters": {
+  "outings": 9407,
+  "points": [
+   {
+    "false_alert_rate": 0.01,
+    "threshold": 37.40333374249936,
+    "final_outings": 128,
+    "caught": 0.0625,
+    "median_fastballs_left": 3.5
+   },
+   {
+    "false_alert_rate": 0.02,
+    "threshold": 28.563714631160547,
+    "final_outings": 128,
+    "caught": 0.078125,
+    "median_fastballs_left": 7.0
+   },
+   {
+    "false_alert_rate": 0.05,
+    "threshold": 18.304204443840774,
+    "final_outings": 128,
+    "caught": 0.1484375,
+    "median_fastballs_left": 6.0
+   },
+   {
+    "false_alert_rate": 0.1,
+    "threshold": 11.451822168888105,
+    "final_outings": 128,
+    "caught": 0.2265625,
+    "median_fastballs_left": 9.0
+   }
+  ]
+ },
+ "breakdown": {
+  "all": {
+   "caught": 0.12574850299401197,
+   "n": 334,
+   "hits": 42
+  },
+  "median_fastballs_left": 5.5,
+  "next_day": {
+   "caught": 0.15966386554621848,
+   "n": 238,
+   "hits": 38
+  },
+  "later": {
+   "caught": 0.041666666666666664,
+   "n": 96,
+   "hits": 4
+  },
+  "sprain": {
+   "caught": 0.0,
+   "n": 17,
+   "hits": 0
+  },
+  "by_season": {
+   "2025": {
+    "caught": 0.10493827160493827,
+    "n": 162,
+    "hits": 17
+   },
+   "2026": {
+    "caught": 0.14534883720930233,
+    "n": 172,
+    "hits": 25
+   }
+  },
+  "by_body": {
+   "elbow_forearm": {
+    "caught": 0.09693877551020408,
+    "n": 196,
+    "hits": 19
+   },
+   "shoulder_lat": {
+    "caught": 0.16666666666666666,
+    "n": 138,
+    "hits": 23
+   }
+  },
+  "ordinary_alert_rate_by_season": {
+   "2025": 0.04842698567895554,
+   "2026": 0.0516176140193215
+  },
+  "per_team_season": {
+   "outings": 605.9333333333333,
+   "alerts_on_ordinary": 29.35,
+   "arm_injury_outings": 5.566666666666666,
+   "caught": 0.7
+  }
+ }
+}
