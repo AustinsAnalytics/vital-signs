@@ -1,0 +1,370 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Vital Signs · What pitch tracking can tell you about an arm</title>
+<meta name="description" content="A calibrated state-space monitor of every MLB pitcher's fastball, tested against every injured-list placement in {{seasons}}: no early warning, a pitch-level in-game alert, and a schedule natural experiment on rest. By Austin Gentile.">
+<meta name="theme-color" content="#efece3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e2a4b" media="(prefers-color-scheme: dark)">
+<link rel="canonical" href="https://austinsanalytics.github.io/vital-signs/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Vital Signs: what pitch tracking can tell you about an arm">
+<meta property="og:description" content="Every MLB pitcher's fastball, scored against his own normal. No early warning before arm injuries, an in-game alert that catches some, and no velocity from extra rest.">
+<meta property="og:url" content="https://austinsanalytics.github.io/vital-signs/">
+<meta property="og:image" content="https://austinsanalytics.github.io/vital-signs/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Vital Signs, drawn as a blueprint: a pitcher's fastball velocity, pitch by pitch, against what he should throw, stamped with an alert.">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%230e2a4b'/%3E%3Crect x='7' y='7' width='50' height='50' fill='none' stroke='%23eef4fb' stroke-width='2.5'/%3E%3Cpath d='M12 27l9 3 9-4 9 3 6 13' fill='none' stroke='%23eef4fb' stroke-width='4' stroke-linejoin='round' stroke-linecap='round'/%3E%3Ccircle cx='46' cy='45' r='5.5' fill='%23f05a4b'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Architects+Daughter&family=Atkinson+Hyperlegible+Next:ital,wght@0,400..800;1,400..600&family=Martian+Mono:wdth,wght@75..112.5,300..800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script defer src="app.js"></script>
+</head>
+<body>
+<svg class="defs" width="0" height="0" aria-hidden="true" focusable="false">
+  <defs>
+    <filter id="ink" x="-8%" y="-15%" width="116%" height="130%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.95" numOctaves="2" seed="11" result="grain"/>
+      <feColorMatrix in="grain" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 -3.2 2.45" result="holes"/>
+      <feComposite in="SourceGraphic" in2="holes" operator="in" result="speckled"/>
+      <feDisplacementMap in="speckled" in2="grain" scale="2.2" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8.6" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="arrowhead" d="M0 1.2 L9 5 L0 8.8 Z"/></marker>
+    <pattern id="hatch-earth" patternUnits="userSpaceOnUse" width="7" height="7" patternTransform="rotate(45)"><line class="hatch-line" x1="0" y1="0" x2="0" y2="7"/></pattern>
+  </defs>
+</svg>
+<a class="skip" href="#monitor">Skip to the analysis</a>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#" aria-label="Vital Signs, back to the cover sheet">
+      <svg class="mark" width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect class="mk-frame" x="1" y="1" width="26" height="26"/><path class="mk-trace" d="M5 12.5l4.5 1.6 4.5-2.2 4.5 1.6 3 6.5"/><circle class="mk-dot" cx="21.5" cy="20" r="2.6"/></svg>
+      <span>Vital Signs</span>
+    </a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#monitor"><i>01</i>Monitor</a><a href="#explorer"><i>02</i>Explorer</a><a href="#warning"><i>03</i>Early warning</a><a href="#ingame"><i>04</i>In the game</a><a href="#rest"><i>05</i>Rest</a><a href="#tigers"><i>06</i>Detroit</a><a href="#method"><i>07</i>Method</a>
+    </nav>
+    <button class="theme" id="theme" type="button" aria-label="Switch between vellum (light) and blueprint (dark)">
+      <span class="t-l">Vellum</span><span class="t-d">Blueprint</span>
+    </button>
+  </div>
+</header>
+<div class="sheet">
+<main>
+<section class="hero" aria-labelledby="title">
+  <div class="wrap hero-grid">
+    <div class="hero-text">
+      <div class="kicker">Signal processing · Bayesian state-space · Causal inference</div>
+      <h1 id="title"><span>Vital</span> <span>Signs</span></h1>
+      <p class="lede">Every pitch is a measurement of an arm. I built a monitor that scores every outing of every MLB pitcher against his own normal, then asked it three questions a front office asks.</p>
+      <div class="gn">
+        <div class="gn-h">General notes</div>
+        <ol class="qa">
+          <li><a href="#warning"><span class="q">Can public tracking data see an arm injury coming?</span><span class="a"><mark>Not in advance</mark></span></a></li>
+          <li><a href="#ingame"><span class="q">Can it be caught during the game?</span><span class="a"><mark>Sometimes</mark></span></a></li>
+          <li><a href="#rest"><span class="q">Does an extra day of rest help?</span><span class="a"><mark>Not for velocity</mark></span></a></li>
+        </ol>
+      </div>
+      <p class="byline">By <strong>Austin Gentile</strong> · Statcast pitch tracking and MLB transactions, {{seasons}} regular seasons through {{through}} · {{outings}} outings by {{pitchers}} pitchers</p>
+    </div>
+    <figure class="detail" id="mon" aria-labelledby="mon-status">
+      <div class="d-head" aria-hidden="true"><span class="d-tag">Detail A · Replay</span><span class="d-who" id="mon-who"></span></div>
+      <div class="d-plot" id="mon-wave" aria-hidden="true"></div>
+      <div class="d-read" aria-hidden="true">
+        <div class="rd"><span class="rk">FB velo</span><span class="rv"><b id="rd-velo">--.-</b><small>mph</small></span></div>
+        <div class="rd"><span class="rk">Expected</span><span class="rv rv-dim"><b id="rd-exp">--.-</b><small>mph</small></span></div>
+        <div class="rd rd-cus"><span class="rk">Alert total</span><span class="rv"><b id="rd-cus">0.0</b><small id="rd-thr"></small></span><span class="meter"><i id="rd-bar"></i></span></div>
+      </div>
+      <figcaption class="d-foot"><span class="hand" id="mon-status">A real outing, scored pitch by pitch.</span><a href="#replay">All {{replay_n}} replays</a></figcaption>
+      <div class="stamp" id="mon-stamp" aria-hidden="true"><b>Alert</b><span id="stamp-sub"></span></div>
+    </figure>
+  </div>
+  <div class="wrap">
+    <div class="spec">
+      <div class="spec-h">Key results</div>
+      <div class="cells">
+        <div class="cell"><div class="cell-k">Calibration</div><div class="cell-v"><span>{{calib_tail}}</span></div><p>of healthy outings score beyond ±2. A standard normal predicts 4.6%, so a score means the same thing for every arm.</p></div>
+        <div class="cell"><div class="cell-k">Final-outing drop</div><div class="cell-v"><span>{{arm_final_velo}}</span><small>SD</small></div><p>on the last outing before an arm injury, {{es_ratio}}× the non-arm placebo. In the five outings before it, no detectable difference.</p></div>
+        <div class="cell"><div class="cell-k">Early-warning AUC</div><div class="cell-v"><span>{{w_auc}}</span></div><p>for a boosted ensemble tested on a held-out season. A one-line velocity rule does as well.</p></div>
+        <div class="cell"><div class="cell-k">Rest effect</div><div class="cell-v"><span>{{rest_velo}}</span><small>mph/day</small></div><p>from a schedule natural experiment (95% CI {{rest_velo_lo}} to {{rest_velo_hi}}).</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="block" id="monitor">
+  <div class="wrap">
+    <header class="sec-head"><span class="bubble" aria-hidden="true"><b>01</b><i>07</i></span><div><div class="kicker">The monitor</div><h2>Every outing, against his own normal</h2></div></header>
+    <figure class="panel release">
+      <div class="tab">Detail 1A</div>
+      <figcaption><div class="chart-title">What the monitor reads</div>
+        <div class="chart-sub">Five vital signs from each pitcher's primary fastball, drawn at the median MLB outing of {{seasons}}.</div></figcaption>
+      <div class="release-grid">
+        <div class="views">
+          <svg class="drawing side" viewBox="0 0 560 330" role="img" aria-label="Side view of the release, from the third-base side: {{fb_velo}} mph, {{fb_spin}} rpm, released {{fb_ext}} feet in front of the rubber and {{fb_relz}} feet above the field.">
+            <path class="earth" d="M36 286 Q56 286 76 253 L140 253 L380 273 Q468 283 548 286 Z"/>
+            <rect class="earth" x="12" y="287" width="536" height="7"/>
+            <path class="obj" d="M12 286 L36 286 Q56 286 76 253 L140 253 L380 273 Q468 283 548 286"/>
+            <rect class="rubber" x="100" y="249" width="20" height="4"/>
+            <text class="lbl" x="94" y="243" text-anchor="end">Rubber</text>
+            <line class="wit" x1="22" y1="{{g_ry}}" x2="{{g_rx}}" y2="{{g_ry}}"/>
+            <line class="dim" x1="28" y1="286" x2="28" y2="{{g_ry}}"/>
+            <path class="tick" d="M22 292l12-12"/>
+            <g transform="translate(28 {{g_ry}})"><path class="tick" d="M-6 6l12-12"/></g>
+            <text class="dv" transform="translate(20 {{g_relz_mid}}) rotate(-90)" text-anchor="middle">{{fb_relz}} ft</text>
+            <g class="bal" transform="translate(46 {{g_relz_mid}})"><circle r="9"/><text y="3.6">4</text></g>
+            <line class="wit" x1="120" y1="247" x2="120" y2="221"/>
+            <line class="wit" x1="{{g_rx}}" y1="{{g_ry}}" x2="{{g_rx}}" y2="237"/>
+            <line class="dim" x1="120" y1="229" x2="{{g_rx}}" y2="229"/>
+            <path class="tick" d="M114 235l12-12"/>
+            <g transform="translate({{g_rx}} 229)"><path class="tick" d="M-6 6l12-12"/></g>
+            <text class="dv" x="{{g_ext_mid}}" y="221" text-anchor="middle">{{fb_ext}} ft</text>
+            <g transform="translate({{g_ext_mid}} 215)"><g class="bal" transform="translate(-46 0)"><circle r="9"/><text y="3.6">3</text></g></g>
+            <g transform="translate({{g_rx}} {{g_ry}})">
+              <path class="vel" d="M13 3 L152 31" marker-end="url(#arrow)"/>
+              <text class="dv" x="60" y="-2">{{fb_velo}} mph</text>
+              <g class="bal" transform="translate(46 -6)"><circle r="9"/><text y="3.6">1</text></g>
+              <path class="spin" d="M7.5 13 A15 15 0 1 0 -13 7.5" marker-end="url(#arrow)"/>
+              <circle class="ball" r="7"/>
+              <path class="stitch" d="M-3 -6 Q1.2 0 -3 6 M3 -6 Q-1.2 0 3 6"/>
+              <text class="dv" x="-24" y="-20" text-anchor="end">{{fb_spin}} rpm</text>
+              <g class="bal" transform="translate(-12 -32)"><circle r="9"/><text y="3.6">2</text></g>
+              <text class="ann" x="-26" y="42" text-anchor="end">release point</text>
+              <path class="ann-arrow" d="M-24 32 Q-14 20 -9 11" marker-end="url(#arrow)"/>
+            </g>
+            <text class="vt" x="300" y="314" text-anchor="middle">Side view</text>
+            <text class="vs" x="300" y="327" text-anchor="middle">From the third-base side</text>
+          </svg>
+          <svg class="drawing front" viewBox="0 0 340 330" role="img" aria-label="Front view from home plate: the arm is {{fb_arm}} degrees above horizontal at release.">
+            <path class="earth" d="M30 286 Q70 286 100 256 L240 256 Q270 286 310 286 Z"/>
+            <rect class="earth" x="8" y="287" width="324" height="7"/>
+            <path class="obj" d="M8 286 L30 286 Q70 286 100 256 L240 256 Q270 286 310 286 L332 286"/>
+            <g class="fig">
+              <circle cx="170" cy="112" r="14"/>
+              <path d="M150 136 L190 136 L178 198 L162 198 Z"/>
+              <path d="M164 198 L154 256 M176 198 L186 256"/>
+              <path d="M190 138 L208 164 L198 182"/>
+            </g>
+            <line class="cl" x1="150" y1="136" x2="34" y2="136"/>
+            <line class="arm" x1="150" y1="136" x2="{{g_ax}}" y2="{{g_ay}}"/>
+            <circle class="ball" cx="{{g_ax}}" cy="{{g_ay}}" r="7"/>
+            <path class="ang" d="M106 136 A44 44 0 0 1 {{g_cx}} {{g_cy}}"/>
+            <text class="dv" x="{{g_lx}}" y="{{g_ly}}" text-anchor="end">{{fb_arm}}°</text>
+            <g class="bal" transform="translate(30 116)"><circle r="9"/><text y="3.6">5</text></g>
+            <text class="ann" x="150" y="44" text-anchor="middle">his right arm</text>
+            <path class="ann-arrow" d="M130 52 Q118 62 {{g_hx}} {{g_hy}}" marker-end="url(#arrow)"/>
+            <text class="vt" x="170" y="314" text-anchor="middle">Front view</text>
+            <text class="vs" x="170" y="327" text-anchor="middle">From home plate</text>
+          </svg>
+        </div>
+        <div class="sched">
+          <div class="sched-h">Schedule of vital signs</div>
+          <ol class="schedule">
+            <li><i>1</i><div><b>Fastball velocity</b><span class="sv">{{fb_velo}} mph</span><p>Speed out of the hand.</p></div></li>
+            <li><i>2</i><div><b>Spin rate</b><span class="sv">{{fb_spin}} rpm</span><p>How fast the ball is spinning.</p></div></li>
+            <li><i>3</i><div><b>Extension</b><span class="sv">{{fb_ext}} ft</span><p>How far in front of the rubber he lets go.</p></div></li>
+            <li><i>4</i><div><b>Release height</b><span class="sv">{{fb_relz}} ft</span><p>Height of the ball at release, above the field.</p></div></li>
+            <li><i>5</i><div><b>Arm angle</b><span class="sv">{{fb_arm}}°</span><p>Angle of the arm at release: 0° is sidearm, 90° is straight over the top.</p></div></li>
+          </ol>
+          <p class="small muted">Medians of {{fb_outings}} outings. The monitor scores every outing on all five, each against the pitcher's own normal.</p>
+        </div>
+      </div>
+    </figure>
+    <div class="grid-2">
+      <div class="prose">
+        <p>A pitcher's average fastball moves from outing to outing for boring reasons: he threw 4 fastballs or 40, it was cold, he'd had nine days off. A 1-mph dip can be noise for one pitcher and alarming for another, so each pitcher gets his own model.</p>
+        <p><b>A state-space filter.</b> For every pitcher and all five vital signs, a Kalman filter tracks his true level. It expects each outing's average to wander by his own pitch-to-pitch noise divided by the fastballs thrown (about {{sd_velo}} mph per pitch for a typical arm), plus day-to-day noise. The longer he's been away, the more it lets his level drift, so rest, injured-list stints and the off-season don't set off false alarms.</p>
+        <p><b>Hierarchical.</b> Each pitcher's noise is shrunk toward the league's. The drift and day-to-day noise are learned from every pitcher at once by maximum likelihood, separately for starters and relievers.</p>
+        <p><b>Calibrated.</b> Each outing gets a score: how surprising it was given everything before it, in standard deviations. On {{calib_n}} healthy outings the scores are standard normal (SD {{calib_sd}}; <mark>{{calib_tail}} beyond ±2</mark>), so −3 means the same thing for a starter who threw 60 fastballs and a reliever who threw 6.</p>
+      </div>
+      <figure class="panel">
+        <div class="tab">Detail 1B</div>
+        <figcaption><div class="chart-title">Is the monitor calibrated?</div>
+          <div class="chart-sub">Velocity scores on healthy outings against a standard normal.</div></figcaption>
+        <div class="legend" aria-hidden="true"><span><i class="sw bar"></i>Observed</span><span><i class="sw line ref"></i>Standard normal</span></div>
+        <div class="chart" id="ch-calib"></div>
+      </figure>
+    </div>
+    <aside class="tblock" aria-label="Sheet 1 summary"><div><span>Sheet</span>01 of 07</div><div><span>Method</span>Kalman filter, empirical Bayes</div><div><span>Checked</span>{{calib_n}} healthy outings, SD {{calib_sd}}</div><div><span>Drawn</span>A. Gentile</div></aside>
+  </div>
+</section>
+
+<section class="block" id="explorer">
+  <div class="wrap">
+    <header class="sec-head"><span class="bubble" aria-hidden="true"><b>02</b><i>07</i></span><div><div class="kicker">Explorer</div><h2>Any pitcher's vital signs</h2></div></header>
+    <p class="prose">Pick a team and a pitcher. Each season sits side by side, with the off-season cut out. Hover over a dot for the outing.</p>
+    <div class="controls">
+      <div class="ctl"><label for="x-team">Team</label><select id="x-team"></select></div>
+      <div class="ctl"><label for="x-pitcher">Pitcher</label><select id="x-pitcher"></select></div>
+    </div>
+    <figure class="panel">
+      <div class="tab">Detail 2A</div>
+      <figcaption><div class="chart-title" id="x-title"></div><div class="chart-sub" id="x-sub"></div></figcaption>
+      <div class="legend" aria-hidden="true">
+        <span><i class="sw line"></i>Filtered level, 95% band</span><span><i class="sw dot"></i>Outing average</span><span><i class="sw dot crit"></i>Score −2 or lower</span>
+        <span><i class="sw ring"></i>In-game alert</span><span><i class="sw hatch"></i>Arm injured list</span><span><i class="sw block"></i>Other injured list</span>
+      </div>
+      <div class="chart" id="ch-velo"></div>
+      <div class="grid-2 tight">
+        <div><div class="chart-sub strong">Spin, rpm</div><div class="chart" id="ch-spin"></div></div>
+        <div><div class="chart-sub strong">Arm angle, degrees</div><div class="chart" id="ch-arm"></div></div>
+      </div>
+      <p class="small muted" id="x-il"></p>
+    </figure>
+    <aside class="tblock" aria-label="Sheet 2 summary"><div><span>Sheet</span>02 of 07</div><div><span>Method</span>The same filter, every pitcher</div><div><span>Data</span>{{outings}} outings, 30 teams</div><div><span>Drawn</span>A. Gentile</div></aside>
+  </div>
+</section>
+
+<section class="block" id="warning">
+  <div class="wrap">
+    <header class="sec-head"><span class="bubble" aria-hidden="true"><b>03</b><i>07</i></span><div><div class="kicker">Can it see an injury coming?</div><h2>No early warning. Then a drop.</h2></div></header>
+    <div class="grid-2">
+      <div class="prose">
+        <p>A common belief is that velocity slips for weeks before an arm injury. I lined up the monitor's scores for the six outings before each of {{arm_events}} arm injured-list stints (elbow, forearm, shoulder, lat) and compared them with {{non_events}} non-arm stints (oblique, hamstring and so on) as a placebo.</p>
+        <p>Before the final outing, the arm group's average score stays within ±{{arm_early_max}} SD of normal, about a tenth of a mph at most. Across those five outings it differs from the placebo by {{es_pre_diff}} SD (95% CI {{es_pre_lo}} to {{es_pre_hi}}), so there's no detectable warning. On the final outing, the arm group's fastball score falls to <mark>{{arm_final_velo}} SD</mark> and its spin score to {{arm_final_spin}} SD, against {{non_final_velo}} SD before non-arm injuries: a gap of {{es_final_diff}} SD ({{es_final_lo}} to {{es_final_hi}}). The injury shows up the day it happens, not weeks before.</p>
+        <p>Could a model find a warning I couldn't see? I trained one on {{w_train_season}} (gradient boosting plus logistic regression, 20 features: every signal, drift accumulators, workload, age, injury history) and tested it on every outing of {{w_test_season}}. It reached an AUC of {{w_auc}}, barely better than a coin flip and no better than a one-line rule (fastball 1.5 mph under his season average: {{w_auc_rule}}). Workload alone got {{w_auc_work}}. Flagging the riskiest 2% of outings caught {{w_early}} of the {{w_events}} arm stints before their final outing. Public tracking data doesn't carry a weeks-ahead warning. If a model built on it claims one, check it for leakage first.</p>
+      </div>
+      <figure class="panel">
+        <div class="tab">Detail 3A</div>
+        <figcaption><div class="chart-title">The six outings before an injured-list stint</div>
+          <div class="chart-sub">Mean fastball velocity score ± 95% interval. Zero is the pitcher's normal.</div></figcaption>
+        <div class="legend" aria-hidden="true"><span><i class="sw dot crit"></i>Arm injuries</span><span><i class="sw dot neutral"></i>Non-arm injuries (placebo)</span></div>
+        <div class="chart" id="ch-event"></div>
+        <div class="tablewrap"><table class="data" id="t-warning"><caption class="sr">Early-warning models tested on the held-out season</caption></table></div>
+      </figure>
+    </div>
+    <aside class="tblock" aria-label="Sheet 3 summary"><div><span>Sheet</span>03 of 07</div><div><span>Method</span>Event study, boosted ensemble</div><div><span>Checked</span>Non-arm placebo, held-out {{w_test_season}}</div><div><span>Drawn</span>A. Gentile</div></aside>
+  </div>
+</section>
+
+<section class="block" id="ingame">
+  <div class="wrap">
+    <header class="sec-head"><span class="bubble" aria-hidden="true"><b>04</b><i>07</i></span><div><div class="kicker">In the game</div><h2>Catching it before he walks off</h2></div></header>
+    <div class="grid-2">
+      <div class="prose">
+        <p>If the injury shows up the day it happens, the question becomes whether the dugout can see it while he's still pitching. For every fastball, the alert compares velocity with what this pitcher should throw at that point: his filtered level from previous outings, plus the league's normal fatigue curve. A CUSUM adds up shortfalls that repeat, shrugs off a single slow pitch, and fires when the total crosses a threshold.</p>
+        <p>Tuned to fire on 5% of ordinary outings, it fired during <mark>{{ig_all_caught}}</mark> of all {{ig_all_n}} outings that ended in an arm injured-list stint ({{ig_all_lift}}× chance), a median of {{ig_left}} fastballs before the pitcher left. When the placement was effective the next day, the likeliest sign the injury happened in that game, it flagged {{ig_nd_caught}} of {{ig_nd_n}}. When it came two or more days later, {{ig_later_caught}} of {{ig_later_n}}. It flagged {{ig_sprain_hits}} of the {{ig_sprain_n}} sprains, which tend to end an outing at once.</p>
+        <p>For a staff, that setting means about {{ig_team_alerts}} alerts a season on ordinary outings, roughly one every {{ig_games_per_alert}} games, and it would have caught about {{ig_team_caught}} of the {{ig_team_injuries}} arm-injury outings a typical team has in a season. It can't see a single-pitch tear coming. It's a prompt for a trainer's look or a mound visit, not a reason to pull anyone.</p>
+      </div>
+      <figure class="panel">
+        <div class="tab">Detail 4A</div>
+        <figcaption><div class="chart-title">Injury outings caught vs false alerts</div>
+          <div class="chart-sub">Each point is a threshold. The dashed line is chance: an alert that ignores the data.</div></figcaption>
+        <div class="legend" aria-hidden="true"><span><i class="sw dot s1"></i>Relievers</span><span><i class="sw dot s2"></i>Starters</span><span><i class="sw line ref dash"></i>Chance</span></div>
+        <div class="chart" id="ch-ingame"></div>
+      </figure>
+    </div>
+    <figure class="panel replay" id="replay">
+      <div class="tab">Detail 4B</div>
+      <div class="replay-head">
+        <figcaption>
+          <div class="chart-title">Replay an outing</div>
+          <div class="chart-sub">All {{replay_n}} outings where the alert fired before an arm injured-list stint, every fastball scored as it was thrown. Dashed: what he should throw at that point, from his level coming in plus the league's normal fatigue. Lower panel: the alert's running total.</div>
+        </figcaption>
+        <div class="controls">
+          <div class="ctl"><label for="r-pick">Outing</label><select id="r-pick"></select></div>
+          <button class="btn" id="r-play" type="button"><svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 1l9 5-9 5z" fill="currentColor"/></svg>Replay</button>
+        </div>
+      </div>
+      <div class="legend" aria-hidden="true"><span><i class="sw dot crit"></i>Fastball below expected</span><span><i class="sw dot neutral"></i>At or above expected</span><span><i class="sw line ref dash"></i>Expected</span><span><i class="sw area"></i>Alert total</span></div>
+      <div class="chart" id="ch-replay"></div>
+      <p class="small" id="r-cap" aria-live="polite"></p>
+    </figure>
+    <aside class="tblock" aria-label="Sheet 4 summary"><div><span>Sheet</span>04 of 07</div><div><span>Method</span>Pitch-level CUSUM</div><div><span>Checked</span>Thresholds from ordinary outings only</div><div><span>Drawn</span>A. Gentile</div></aside>
+  </div>
+</section>
+
+<section class="block" id="rest">
+  <div class="wrap">
+    <header class="sec-head"><span class="bubble" aria-hidden="true"><b>05</b><i>07</i></span><div><div class="kicker">Does rest help?</div><h2>A natural experiment from the schedule</h2></div></header>
+    <div class="grid-2">
+      <div class="prose">
+        <p>Comparing starters on five days' rest with starters on six is confounded: managers give extra days to the pitchers who need them. Team off days are different. They're fixed when the schedule is written, months ahead, and rainouts come from the weather. When one falls in the five days after a start ({{rest_offshare}} of the {{rest_starts}} turns studied), his next turn gets pushed back for reasons that have nothing to do with his arm.</p>
+        <p>Using off days as an instrument for days of rest (two-stage least squares, pitcher-season fixed effects, month and previous-pitch-count controls, errors clustered by pitcher), each off day adds {{rest_fs}} days of rest (first-stage F = {{rest_F}}). Each extra day changed next-start fastball velocity by <mark>{{rest_velo}} mph</mark> (95% CI {{rest_velo_lo}} to {{rest_velo_hi}}) and spin by {{rest_spin}} rpm ({{rest_spin_lo}} to {{rest_spin_hi}}).</p>
+        <p>In other words, within a normal rotation, extra rest doesn't buy velocity. All {{rest_versions}} versions of the experiment come out slightly negative ({{rest_range_lo}} to {{rest_range_hi}} mph per day), and none leaves room for a gain of more than {{rest_gain_cap}} mph per day. A six-man rotation may have other benefits, such as fewer innings per arm over a season, which this design doesn't measure. A harder fastball the next time out isn't one of them.</p>
+      </div>
+      <figure class="panel">
+        <div class="tab">Detail 5A</div>
+        <figcaption><div class="chart-title">What an extra day of rest buys, four ways</div>
+          <div class="chart-sub">Effect on next-start fastball velocity, with 95% intervals. Zero means no effect.</div></figcaption>
+        <div class="chart" id="ch-rest"></div>
+      </figure>
+    </div>
+    <aside class="tblock" aria-label="Sheet 5 summary"><div><span>Sheet</span>05 of 07</div><div><span>Method</span>Two-stage least squares</div><div><span>Checked</span>First stage F {{rest_F}}, {{rest_versions}} specifications</div><div><span>Drawn</span>A. Gentile</div></aside>
+  </div>
+</section>
+
+<section class="block" id="tigers">
+  <div class="wrap">
+    <header class="sec-head"><span class="bubble" aria-hidden="true"><b>06</b><i>07</i></span><div><div class="kicker">Detroit</div><h2>The Tigers' staff, by the monitor</h2></div></header>
+    <p class="prose">Every pitcher whose most recent appearance was for Detroit: where his fastball sits now, how it moved over his last ten outings, how often the in-game alert fired, and his injured-list history in the data. Click a name to open his full trace in the <a href="#explorer">explorer</a>.</p>
+    <div class="panel"><div class="tab">Schedule 6A</div><div class="tablewrap"><table class="data" id="t-tigers"><caption class="sr">Detroit pitchers by the monitor</caption></table></div>
+      <p class="small muted" id="t-note"></p></div>
+    <aside class="tblock" aria-label="Sheet 6 summary"><div><span>Sheet</span>06 of 07</div><div><span>Method</span>The same monitor</div><div><span>Data</span>Each pitcher's latest season</div><div><span>Drawn</span>A. Gentile</div></aside>
+  </div>
+</section>
+
+<section class="block" id="method">
+  <div class="wrap">
+    <header class="sec-head"><span class="bubble" aria-hidden="true"><b>07</b><i>07</i></span><div><div class="kicker">Method, validation and limits</div><h2>How it was built, and how it was checked</h2></div></header>
+    <ol class="steps">
+      <li><b>Data.</b> Every {{seasons}} regular-season pitch from Baseball Savant ({{pitches}} pitches), loaded into DuckDB and aggregated to one row per outing for each pitcher's primary fastball. Position players who pitched are left out. {{il_total}} pitcher injured-list placements parsed from MLB's transaction log, dated to their retroactive start and grouped by body part ({{il_arm}} elbow, forearm, shoulder or lat). Contusions and lacerations, which come from being hit rather than from throwing, are kept out of the arm group.</li>
+      <li><b>Monitor.</b> A local-level state-space model per pitcher and metric. Observation noise is his within-game variance (partially pooled) divided by the fastballs thrown, plus a day-level term; drift grows with days away. Hyperparameters are fit by maximum marginal likelihood across all pitchers, by role. A pitcher's first outing sets his baseline; every outing after it is scored.</li>
+      <li><b>Event study.</b> Arm injuries vs non-arm injuries as a placebo, aligned on the final outing and compared stint by stint: the average of the five earlier outings, and the final one.</li>
+      <li><b>Early warning.</b> Gradient boosting and logistic regression (and their average) on 20 outing-level features, trained on {{w_train_season}} and tested on {{w_test_season}}, against three baselines. Event-level results separate a warning on the final outing from one earlier.</li>
+      <li><b>In-game alert.</b> A one-sided CUSUM on pitch-level velocity scores, with expectations from the filter and the league fatigue curve by role. Thresholds are set on ordinary outings only, counting every outing with a fastball, however short. They hold across seasons: {{ig_ord_rates}} of ordinary outings alert in 2025 and 2026.</li>
+      <li><b>Rest.</b> Two-stage least squares. The instrument is the number of team off days (scheduled or rained out) in the five days after the previous start, a fixed window so the manager's choice can't leak in. His previous appearance must be a full start, so a relief outing or short start in between can't blur the rest count, and turns near the All-Star break are dropped. Pitcher-season fixed effects, month and previous-pitch-count controls, errors clustered by pitcher. Robust to counting off days over the whole gap and to a tighter rest window.</li>
+    </ol>
+    <div class="grid-2 notes">
+      <div class="note">
+        <h3><span>Note 1</span>What didn't work</h3>
+        <p>I also tested whether the filter confirms a real velocity drop faster than simple rules, by planting known drops in real pitchers' sequences. At the same false-alarm rate it was no faster for starters: it confirmed a 1.5-mph drop within three starts {{chg_filter}} of the time, against {{chg_single}} for a plain "down vs his season average" rule. For relievers it was a little faster ({{chg_rp_filter}} vs {{chg_rp_single}}). Its value is calibration, meaning a score that means the same thing for every pitcher and sample size, not speed. The early-warning model is the other thing that didn't work.</p>
+      </div>
+      <div class="note">
+        <h3><span>Note 2</span>Limits</h3>
+        <p>Public data has no medical records, biomechanics or bullpen workloads, which is where a team's own model starts. Injured-list dates are when a team placed a player, not when an injury began, and some arm injuries are listed vaguely. The in-game alert can't see a pitcher who was pulled early because a trainer already noticed. It reads only the primary fastball; scoring every pitch type against its own expected speed is the obvious next step.</p>
+      </div>
+    </div>
+    <div class="revs">
+      <div class="revs-h">Revisions</div>
+      <div class="tablewrap"><table class="data rev">
+        <caption class="sr">Revision history: what changed while the project was built, and why</caption>
+        <thead><tr><th>Rev</th><th>Change</th><th>Why it mattered</th></tr></thead>
+        <tbody>
+          <tr><td class="rv-l"><span aria-label="Revision A">A</span></td><td>First complete build: the monitor, event study, early-warning model, in-game alert and rest experiment.</td><td>The baseline every later fix was checked against.</td></tr>
+          <tr><td class="rv-l"><span aria-label="Revision B">B</span></td><td>The rest instrument counts team off days in a fixed five-day window after each start.</td><td>Counting across the whole gap let a manager's choice to push a start back leak in, because a longer gap catches more off days.</td></tr>
+          <tr><td class="rv-l"><span aria-label="Revision C">C</span></td><td>For rest, the previous appearance must be a full start, and short outcome starts stay in.</td><td>A relief outing in between made rest look longer than it was, and dropping short starts selected on the outcome. The first stage got stronger; the answer didn't change.</td></tr>
+          <tr><td class="rv-l"><span aria-label="Revision D">D</span></td><td>The in-game alert scores every outing with a fastball, however short.</td><td>The first version skipped outings with fewer than six fastballs, which quietly dropped the shortest and hardest injury outings.</td></tr>
+          <tr><td class="rv-l"><span aria-label="Revision E">E</span></td><td>A fixed tie-break for each pitcher's primary fastball type.</td><td>A few pitcher-seasons had ties broken arbitrarily, so two runs could disagree. Now two full rebuilds agree on every number.</td></tr>
+          <tr><td class="rv-l"><span aria-label="Revision F">F</span></td><td>Redrawn as a drawing set.</td><td>The two tools at the center of the project come from engineering, so the page now looks like an engineering drawing (see the colophon).</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+    <aside class="tblock" aria-label="Sheet 7 summary"><div><span>Sheet</span>07 of 07</div><div><span>Method</span>Validation first</div><div><span>Checked</span>Simulated-data tests, every publish</div><div><span>Drawn</span>A. Gentile</div></aside>
+  </div>
+</section>
+</main>
+<footer class="foot">
+  <div class="wrap">
+    <div class="titleblock">
+      <div class="tb-name"><span class="k">Project</span><b>Vital Signs</b><span class="tb-sub">What public pitch tracking can, and can't, tell you about a pitcher's arm</span></div>
+      <div><span class="k">Drawn by</span>Austin Gentile</div>
+      <div><span class="k">School</span>Centre College · Mathematics and Data Science</div>
+      <div><span class="k">Data</span>Baseball Savant · MLB Stats API</div>
+      <div><span class="k">Seasons</span>{{seasons}}</div>
+      <div><span class="k">Sheets</span>07</div>
+      <div><span class="k">Rev</span>F</div>
+    </div>
+    <p class="links"><a href="https://www.linkedin.com/in/austin-gentile-0560a3342">LinkedIn</a> · <a href="https://github.com/AustinsAnalytics/vital-signs">Code</a> · Also: <a href="https://austinsanalytics.github.io/tap-or-hold/">Tap or Hold</a> · <a href="https://austinsanalytics.github.io/pit-wall/">Pit Wall</a></p>
+    <p><b>Colophon.</b> The two tools at the center of this project come from engineering: the CUSUM chart from factory quality control (E. S. Page, 1954) and the Kalman filter from aerospace navigation (R. E. Kalman, 1960). So the page is drawn like an engineering drawing, on vellum in light mode and as a blueprint in dark. Construction lines are non-photo blue, problems are marked in red, and checked results get a yellow highlighter, the way a checker marks up a drawing. Set in Martian Mono, Atkinson Hyperlegible Next and Architects Daughter. The charts are D3, and their colors were checked for colorblind separation in both modes.</p>
+    <p>Built with Claude Code (Anthropic) as an AI pair programmer, under a validation-first workflow: every model has a calibration check, a held-out season or a placebo, the estimators are tested on simulated data with known answers, and every statistic on this page is generated from the code in the repository.</p>
+    <p>Independent project, not affiliated with MLB or the Detroit Tigers. Data: Baseball Savant and the MLB Stats API. Injured-list information comes from public transaction records.</p>
+  </div>
+</footer>
+</div>
+</body>
+</html>
